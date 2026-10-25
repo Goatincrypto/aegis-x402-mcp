@@ -114,13 +114,14 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 ## Publishing & Registry Registration
 
 ### Official Model Context Protocol Registry
-Submit PR to: [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)
+Published on the official MCP Registry: [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) via `mcp-publisher`.
 
-### Community Registries
-- **Smithery:** Run `npx -y @smithery/cli install aegis-x402-mcp`
-- **mcp.so:** Submit package `aegis-x402-mcp`
+### Community Registries & Discovery
+- **NPM:** [https://www.npmjs.com/package/aegis-x402-mcp](https://www.npmjs.com/package/aegis-x402-mcp)
+- **GitHub:** [https://github.com/Goatincrypto/aegis-x402-mcp](https://github.com/Goatincrypto/aegis-x402-mcp)
 - **Glama:** [glama.ai/mcp/servers](https://glama.ai/mcp/servers)
 - **PulseMCP:** [pulsemcp.com](https://pulsemcp.com)
+- **Smithery:** `npx -y @smithery/cli install aegis-x402-mcp`
 
 ---
 
