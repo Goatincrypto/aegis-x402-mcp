@@ -1,6 +1,6 @@
 {
   "name": "aegis-x402-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model Context Protocol (MCP) server for AegisAudit x402 Security Intelligence, PreFlight Bundles, KYA, and Grounded AI on Base",
   "type": "module",
   "main": "dist/index.js",
@@ -9,12 +9,22 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "test": "node --test dist/test.js",
     "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Goatincrypto/aegis-x402-mcp.git"
+  },
+  "homepage": "https://github.com/Goatincrypto/aegis-x402-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/Goatincrypto/aegis-x402-mcp/issues"
   },
   "keywords": [
     "mcp",
@@ -32,5 +42,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.5"
   }
 }
