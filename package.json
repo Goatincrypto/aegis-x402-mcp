@@ -1,0 +1,36 @@
+{
+  "name": "aegis-x402-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for AegisAudit x402 Security Intelligence, PreFlight Bundles, KYA, and Grounded AI on Base",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "aegis-x402-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x402",
+    "claude-desktop",
+    "cursor",
+    "windsurf",
+    "token-security",
+    "base",
+    "honeypot"
+  ],
+  "author": "Antigravity Autonomous Systems",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "viem": "^2.21.0"
+  }
+}
