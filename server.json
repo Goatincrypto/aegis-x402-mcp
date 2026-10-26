@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.goatincrypto/aegis-x402-mcp",
+  "description": "Model Context Protocol (MCP) server for AegisAudit x402 Security Intelligence, PreFlight Bundles, KYA, and Grounded AI on Base",
+  "repository": {
+    "url": "https://github.com/Goatincrypto/aegis-x402-mcp",
+    "source": "github"
+  },
+  "version": "1.0.1",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "registry_base_url": "https://registry.npmjs.org",
+      "identifier": "aegis-x402-mcp",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environment_variables": [
+        {
+          "name": "AEGIS_CREDIT_TOKEN",
+          "description": "Optional prepaid credit token for Tier-2 MCP access",
+          "is_required": false
+        },
+        {
+          "name": "AEGIS_PRIVATE_KEY",
+          "description": "Optional EVM private key for Tier-3 autonomous gasless EIP-3009 settlement",
+          "is_required": false
+        }
+      ]
+    }
+  ]
+}
