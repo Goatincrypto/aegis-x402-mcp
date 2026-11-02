@@ -33,8 +33,8 @@
    Tools like `aegis_token_preview` and `aegis_recent_audits` work instantly out-of-the-box with zero configuration or keys.
 
 2. **Tier 2 — Prepaid Credit Token (Recommended for Humans):**
-   Top up in 1-click at [https://aegis-audit-x402.project-easy-x.workers.dev/pay](https://aegis-audit-x402.project-easy-x.workers.dev/pay) to get a credit token `ck_...`.
-   Add `AEGIS_CREDIT_TOKEN` in your config. No wallet, no signing, zero friction.
+   Top up in 1-click at [https://aegis-audit-x402.project-easy-x.workers.dev/pay](https://aegis-audit-x402.project-easy-x.workers.dev/pay) to get a signed 24-hour credit token `aegis_credit_...`.
+   Add `AEGIS_CREDIT_TOKEN` in your config. No local wallet key or per-call signing required.
 
 3. **Tier 3 — Autonomous Agentic Wallet (For Autonomous Trading Bots & Power Users):**
    Add `AEGIS_PRIVATE_KEY` in your config.
@@ -59,7 +59,7 @@ Add this configuration to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["-y", "aegis-x402-mcp"],
       "env": {
-        "AEGIS_CREDIT_TOKEN": "ck_your_credit_token_or_leave_empty_for_free_tier"
+        "AEGIS_CREDIT_TOKEN": "aegis_credit_your_token_or_leave_empty_for_free_tier"
       }
     }
   }
@@ -77,7 +77,7 @@ Create or update `.cursor/mcp.json` in your project root:
       "command": "npx",
       "args": ["-y", "aegis-x402-mcp"],
       "env": {
-        "AEGIS_CREDIT_TOKEN": "ck_your_credit_token"
+        "AEGIS_CREDIT_TOKEN": "aegis_credit_your_token"
       }
     }
   }

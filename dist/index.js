@@ -9,14 +9,14 @@ const GATEWAY_URL = process.env.AEGIS_GATEWAY_URL || 'https://aegis-audit-x402.p
 const API_KEY = process.env.AEGIS_API_KEY || process.env.AEGIS_CREDIT_TOKEN || '';
 const PRIVATE_KEY = process.env.AEGIS_PRIVATE_KEY || '';
 const PAYMENT_HEADER = process.env.X402_PAYMENT_HEADER || '';
-const ALLOWED_PAYTO = '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB'.toLowerCase();
-const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
+export const ALLOWED_PAYTO = '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB'.toLowerCase();
+export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
 /**
  * Signs EIP-3009 TransferWithAuthorization locally inside the user's MCP process.
  * Keys never leave the local machine.
  * Protected by strict recipient allowlist guard: only signs toward official Aegis address.
  */
-async function signEip3009Payment(privateKeyHex, accepts, resource) {
+export async function signEip3009Payment(privateKeyHex, accepts, resource) {
     const cleanKey = privateKeyHex.trim().startsWith('0x')
         ? privateKeyHex.trim()
         : `0x${privateKeyHex.trim()}`;
@@ -145,7 +145,7 @@ async function fetchFromAegis(endpoint, options = {}) {
 }
 const server = new Server({
     name: 'aegis-x402-mcp',
-    version: '1.0.2',
+    version: '1.0.3',
 }, {
     capabilities: {
         tools: {},
@@ -355,7 +355,9 @@ async function run() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
 }
-run().catch((error) => {
-    console.error('Fatal error running aegis-x402-mcp server:', error);
-    process.exit(1);
-});
+if (process.env.AEGIS_MCP_TEST !== '1') {
+    run().catch((error) => {
+        console.error('Fatal error running aegis-x402-mcp server:', error);
+        process.exit(1);
+    });
+}

@@ -1,7 +1,8 @@
 {
   "name": "aegis-x402-mcp",
-  "version": "1.0.2",
-  "description": "Model Context Protocol (MCP) server for AegisAudit x402 Security Intelligence, PreFlight Bundles, KYA, and Grounded AI on Base",
+  "mcpName": "io.github.Goatincrypto/aegis-x402-mcp",
+  "version": "1.0.3",
+  "description": "MCP server for AegisAudit x402 token security, honeypot simulation, KYA, and PreFlight clearance",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -10,7 +11,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "server.json"
   ],
   "scripts": {
     "build": "tsc",
@@ -40,7 +42,7 @@
   "author": "Antigravity Autonomous Systems",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "viem": "^2.21.0"
   },
   "devDependencies": {

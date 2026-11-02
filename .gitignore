@@ -1,0 +1,3 @@
+node_modules/
+.mcp-publisher-token
+*.tgz
