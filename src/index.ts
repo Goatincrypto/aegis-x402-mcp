@@ -6,6 +6,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { privateKeyToAccount } from 'viem/accounts';
+import { getAddress } from 'viem';
 import { randomBytes } from 'crypto';
 
 const GATEWAY_URL = process.env.AEGIS_GATEWAY_URL || 'https://aegis-audit-x402.project-easy-x.workers.dev';
@@ -21,7 +22,7 @@ const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
  * Keys never leave the local machine.
  * Protected by strict recipient allowlist guard: only signs toward official Aegis address.
  */
-async function signEip3009Payment(privateKeyHex: string, accepts: any): Promise<string> {
+async function signEip3009Payment(privateKeyHex: string, accepts: any, resource?: any): Promise<string> {
   const cleanKey = privateKeyHex.trim().startsWith('0x')
     ? (privateKeyHex.trim() as `0x${string}`)
     : (`0x${privateKeyHex.trim()}` as `0x${string}`);
@@ -33,15 +34,20 @@ async function signEip3009Payment(privateKeyHex: string, accepts: any): Promise<
   }
 
   const nonce = `0x${randomBytes(32).toString('hex')}` as `0x${string}`;
-  const validAfter = 0n;
-  const validBefore = BigInt(Math.floor(Date.now() / 1000) + 3600);
-  const value = BigInt(accepts.amount || '10000');
+  const validAfterStr = '0';
+  const maxTimeout = typeof accepts.maxTimeoutSeconds === 'number' ? accepts.maxTimeoutSeconds : 300;
+  const validBeforeStr = String(Math.floor(Date.now() / 1000) + maxTimeout);
+  const valueStr = String(accepts.amount || '10000');
+
+  const fromChecksum = getAddress(account.address);
+  const toChecksum = getAddress(accepts.payTo || accepts.recipient);
+  const assetChecksum = getAddress(accepts.asset || BASE_USDC);
 
   const domain = {
     name: accepts.extra?.name || 'USD Coin',
     version: accepts.extra?.version || '2',
     chainId: 8453,
-    verifyingContract: (accepts.asset || BASE_USDC) as `0x${string}`,
+    verifyingContract: assetChecksum,
   };
 
   const types = {
@@ -60,30 +66,35 @@ async function signEip3009Payment(privateKeyHex: string, accepts: any): Promise<
     types,
     primaryType: 'TransferWithAuthorization',
     message: {
-      from: account.address,
-      to: accepts.payTo as `0x${string}`,
-      value,
-      validAfter,
-      validBefore,
+      from: fromChecksum,
+      to: toChecksum,
+      value: BigInt(valueStr),
+      validAfter: BigInt(validAfterStr),
+      validBefore: BigInt(validBeforeStr),
       nonce,
     },
   });
 
-  const paymentPayload = {
+  const authorization = {
+    from: fromChecksum,
+    to: toChecksum,
+    value: valueStr,
+    validAfter: validAfterStr,
+    validBefore: validBeforeStr,
+    nonce,
+  };
+
+  const paymentPayload: Record<string, any> = {
     x402Version: 2,
-    scheme: 'exact',
-    network: 'eip155:8453',
-    asset: accepts.asset || BASE_USDC,
     payload: {
-      from: account.address,
-      to: accepts.payTo,
-      value: value.toString(),
-      validAfter: Number(validAfter),
-      validBefore: Number(validBefore),
-      nonce,
+      authorization,
       signature,
     },
+    accepted: accepts,
   };
+  if (resource) {
+    paymentPayload.resource = resource;
+  }
 
   return Buffer.from(JSON.stringify(paymentPayload)).toString('base64');
 }
@@ -118,7 +129,7 @@ async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Prom
     // Tier 3: If user provided a local private key, sign and retry in-flight
     if (PRIVATE_KEY && accepts) {
       try {
-        const signedHeader = await signEip3009Payment(PRIVATE_KEY, accepts);
+        const signedHeader = await signEip3009Payment(PRIVATE_KEY, accepts, paymentReq?.resource);
         const retryHeaders = {
           ...headers,
           'X-PAYMENT': signedHeader,
@@ -156,7 +167,7 @@ async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Prom
 const server = new Server(
   {
     name: 'aegis-x402-mcp',
-    version: '1.0.0',
+    version: '1.0.2',
   },
   {
     capabilities: {

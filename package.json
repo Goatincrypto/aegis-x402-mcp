@@ -1,6 +1,6 @@
 {
   "name": "aegis-x402-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Model Context Protocol (MCP) server for AegisAudit x402 Security Intelligence, PreFlight Bundles, KYA, and Grounded AI on Base",
   "type": "module",
   "main": "dist/index.js",

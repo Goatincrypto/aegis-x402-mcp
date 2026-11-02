@@ -6,13 +6,13 @@
     "url": "https://github.com/Goatincrypto/aegis-x402-mcp",
     "source": "github"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packages": [
     {
       "registry_type": "npm",
       "registry_base_url": "https://registry.npmjs.org",
       "identifier": "aegis-x402-mcp",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "transport": {
         "type": "stdio"
       },
@@ -28,6 +28,12 @@
           "is_required": false
         }
       ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://aegis-audit-x402.project-easy-x.workers.dev/mcp"
     }
   ]
 }
