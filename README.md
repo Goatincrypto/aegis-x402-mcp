@@ -106,8 +106,10 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 | Variable | Description |
 |---|---|
 | `AEGIS_GATEWAY_URL` | Gateway URL (defaults to `https://aegis-audit-x402.project-easy-x.workers.dev`). |
-| `AEGIS_API_KEY` | Optional developer API key to bypass per-call x402 signing. |
-| `X402_PAYMENT_HEADER` | Pre-signed EIP-3009 payment header or authorization token. |
+| `AEGIS_CREDIT_TOKEN` | Tier-bound 24h prepaid credit token generated from `/pay` or prior `X-Aegis-Credit-Token` settlement headers. |
+| `AEGIS_PRIVATE_KEY` | Optional local EVM private key (`0x...`) used in-process to sign EIP-3009 USDC authorizations on Base without keys ever leaving your machine. |
+| `AEGIS_API_KEY` | Alias for `AEGIS_CREDIT_TOKEN` / prepaid enterprise API key. |
+| `X402_PAYMENT_HEADER` | Pre-signed base64 EIP-3009 payment header or authorization token. |
 
 ---
 

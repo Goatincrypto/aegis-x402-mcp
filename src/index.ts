@@ -17,6 +17,11 @@ const PAYMENT_HEADER = process.env.X402_PAYMENT_HEADER || '';
 export const ALLOWED_PAYTO = '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB'.toLowerCase();
 export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
 
+export function parseChainIdFromNetwork(network?: string): number {
+  const match = String(network || '').match(/^eip155:(\d+)$/);
+  return match ? Number(match[1]) : 8453;
+}
+
 /**
  * Signs EIP-3009 TransferWithAuthorization locally inside the user's MCP process.
  * Keys never leave the local machine.
@@ -42,11 +47,12 @@ export async function signEip3009Payment(privateKeyHex: string, accepts: any, re
   const fromChecksum = getAddress(account.address);
   const toChecksum = getAddress(accepts.payTo || accepts.recipient);
   const assetChecksum = getAddress(accepts.asset || BASE_USDC);
+  const chainId = parseChainIdFromNetwork(accepts.network);
 
   const domain = {
     name: accepts.extra?.name || 'USD Coin',
     version: accepts.extra?.version || '2',
-    chainId: 8453,
+    chainId,
     verifyingContract: assetChecksum,
   };
 
@@ -105,7 +111,7 @@ export async function signEip3009Payment(privateKeyHex: string, accepts: any, re
  * Tier 2: Prepaid credit token (AEGIS_CREDIT_TOKEN / AEGIS_API_KEY) in env.
  * Tier 3: Local wallet signing (AEGIS_PRIVATE_KEY) in env -> signs 402 challenge and retries seamlessly.
  */
-async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Promise<any> {
+export async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Promise<any> {
   const url = `${GATEWAY_URL}${endpoint}`;
   const headers: Record<string, string> = {
     'Accept': 'application/json',
@@ -139,8 +145,21 @@ async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Prom
         if (retryRes.ok) {
           return retryRes.json();
         }
+        const retryBody = await retryRes.json().catch(async () => ({ raw: await retryRes.text().catch(() => '') }));
+        return {
+          status: 'UPSTREAM_ERROR',
+          statusCode: retryRes.status,
+          charged: false,
+          message: retryBody?.message || retryBody?.error || retryRes.statusText || 'Payment retry failed',
+          details: retryBody,
+        };
       } catch (signErr: any) {
-        console.error('[aegis-mcp] Local EIP-3009 signing failed:', signErr?.message);
+        return {
+          status: 'UPSTREAM_ERROR',
+          statusCode: 500,
+          charged: false,
+          message: `Local EIP-3009 signing failed: ${signErr?.message || String(signErr)}`,
+        };
       }
     }
 
@@ -151,13 +170,24 @@ async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Prom
       statusCode: 402,
       price,
       payTo: accepts?.recipient || accepts?.payTo || ALLOWED_PAYTO,
-      network: 'eip155:8453 (Base Mainnet)',
-      message: `[AEGIS x402 PAYMENT REQUIRED] This tool costs ${price} on Base Mainnet.`,
+      network: `${accepts?.network || 'eip155:8453'}`,
+      message: `[AEGIS x402 PAYMENT REQUIRED] This tool costs ${price} on Base.`,
       setupInstructions: {
         optionA_prepaidCredits: 'Top up in 1-click at https://aegis-audit-x402.project-easy-x.workers.dev/pay and add AEGIS_CREDIT_TOKEN in your MCP settings (zero signing required).',
         optionB_agenticWallet: 'Add AEGIS_PRIVATE_KEY in your MCP config; the local process will sign EIP-3009 gasless settlements on-demand without keys ever leaving your machine.',
       },
       paymentDetails: paymentReq,
+    };
+  }
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(async () => ({ raw: await res.text().catch(() => '') }));
+    return {
+      status: 'UPSTREAM_ERROR',
+      statusCode: res.status,
+      charged: false,
+      message: errBody?.message || errBody?.error || res.statusText || 'Aegis gateway request failed',
+      details: errBody,
     };
   }
 
@@ -167,7 +197,7 @@ async function fetchFromAegis(endpoint: string, options: RequestInit = {}): Prom
 const server = new Server(
   {
     name: 'aegis-x402-mcp',
-    version: '1.0.3',
+    version: '1.0.4',
   },
   {
     capabilities: {
@@ -302,6 +332,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'aegis_grounded_chat',
+        description:
+          'USE WHEN: Running OpenAI-compatible LLM reasoning grounded in live Base/Ethereum/Solana on-chain security telemetry ($0.005 USDC on Base).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            prompt: {
+              type: 'string',
+              description: 'Security or DeFi analysis question to run with live on-chain token context',
+            },
+            model: {
+              type: 'string',
+              description: 'Optional model identifier (defaults to aegis-llama-3.3-70b-grounded)',
+            },
+          },
+          required: ['prompt'],
+        },
+      },
+      {
         name: 'aegis_recent_audits',
         description:
           'USE WHEN: Monitoring the real-time stream of recently scanned tokens on Base, Ethereum, and Solana (FREE).',
@@ -373,6 +422,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (name === 'aegis_web_scrape') {
       const targetUrl = String(args?.url || 'https://example.com');
       const data = await fetchFromAegis(`/api/v1/scrape?url=${encodeURIComponent(targetUrl)}`);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+      };
+    }
+
+    if (name === 'aegis_grounded_chat') {
+      const prompt = String(args?.prompt || 'Analyze Base USDC safety.');
+      const model = String(args?.model || 'aegis-llama-3.3-70b-grounded');
+      const data = await fetchFromAegis('/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] }),
+      });
       return {
         content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
       };

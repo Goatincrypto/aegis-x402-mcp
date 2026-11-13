@@ -130,17 +130,17 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 7 too
             params: {
                 protocolVersion: '2025-06-18',
                 capabilities: {},
-                clientInfo: { name: 'aegis-ci-test', version: '1.0.3' },
+                clientInfo: { name: 'aegis-ci-test', version: '1.0.4' },
             },
         }) + '\n');
     });
     const initRes = responses.find((r) => r.id === 1);
     assert.ok(initRes?.result?.serverInfo, 'initialize must return serverInfo');
     assert.equal(initRes.result.serverInfo.name, 'aegis-x402-mcp');
-    assert.equal(initRes.result.serverInfo.version, '1.0.3');
+    assert.equal(initRes.result.serverInfo.version, '1.0.4');
     const listRes = responses.find((r) => r.id === 2);
     const tools = listRes?.result?.tools || [];
-    assert.equal(tools.length, 7, 'Must expose all 7 Aegis MCP tools');
+    assert.equal(tools.length, 8, 'Must expose all 8 Aegis MCP tools');
     const names = tools.map((t) => t.name);
     assert.ok(names.includes('aegis_preflight_bundle'));
     assert.ok(names.includes('aegis_priority_audit'));
@@ -148,5 +148,30 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 7 too
     assert.ok(names.includes('aegis_token_preview'));
     assert.ok(names.includes('aegis_wallet_kya'));
     assert.ok(names.includes('aegis_web_scrape'));
+    assert.ok(names.includes('aegis_grounded_chat'));
     assert.ok(names.includes('aegis_recent_audits'));
+});
+test('parseChainIdFromNetwork resolves mainnet, sepolia, and safe fallback', async () => {
+    const { parseChainIdFromNetwork } = await import('./index.js');
+    assert.equal(parseChainIdFromNetwork('eip155:8453'), 8453);
+    assert.equal(parseChainIdFromNetwork('eip155:84532'), 84532);
+    assert.equal(parseChainIdFromNetwork('solana:mainnet'), 8453);
+    assert.equal(parseChainIdFromNetwork(undefined), 8453);
+});
+test('fetchFromAegis returns structured UPSTREAM_ERROR on non-OK HTTP responses instead of throwing on res.json', async () => {
+    const { fetchFromAegis } = await import('./index.js');
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(JSON.stringify({ error: 'UPSTREAM_502_ABORTED_BEFORE_CHARGE' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+    }));
+    try {
+        const out = await fetchFromAegis('/api/v1/token/audit');
+        assert.equal(out.status, 'UPSTREAM_ERROR');
+        assert.equal(out.statusCode, 502);
+        assert.equal(out.charged, false);
+    }
+    finally {
+        globalThis.fetch = origFetch;
+    }
 });
