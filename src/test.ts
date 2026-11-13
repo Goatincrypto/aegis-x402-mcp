@@ -50,7 +50,7 @@ test('signEip3009Payment builds valid x402 v2 EIP-3009 authorization recoverable
   };
 
   const b64 = await signEip3009Payment(testPk, accepts, {
-    url: 'https://aegis-audit-x402.project-easy-x.workers.dev/api/v1/preflight/bundle',
+    url: 'https://aegisaudit.org/api/v1/preflight/bundle',
   });
   const decoded = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
 
@@ -94,7 +94,7 @@ test('signEip3009Payment builds valid x402 v2 EIP-3009 authorization recoverable
   assert.equal(isValid, true, 'EIP-712 TransferWithAuthorization signature must verify cleanly');
 });
 
-test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 7 tools', async () => {
+test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 8 tools', async () => {
   const serverPath = join(__dirname, 'index.js');
   const env = { ...process.env };
   delete env.AEGIS_MCP_TEST;
@@ -150,7 +150,7 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 7 too
         params: {
           protocolVersion: '2025-06-18',
           capabilities: {},
-          clientInfo: { name: 'aegis-ci-test', version: '1.0.4' },
+          clientInfo: { name: 'aegis-ci-test', version: '1.0.5' },
         },
       }) + '\n'
     );
@@ -159,7 +159,7 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 7 too
   const initRes = responses.find((r) => r.id === 1);
   assert.ok(initRes?.result?.serverInfo, 'initialize must return serverInfo');
   assert.equal(initRes.result.serverInfo.name, 'aegis-x402-mcp');
-  assert.equal(initRes.result.serverInfo.version, '1.0.4');
+  assert.equal(initRes.result.serverInfo.version, '1.0.5');
 
   const listRes = responses.find((r) => r.id === 2);
   const tools = listRes?.result?.tools || [];

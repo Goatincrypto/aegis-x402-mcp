@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema, } from '@modelcontextpro
 import { privateKeyToAccount } from 'viem/accounts';
 import { getAddress } from 'viem';
 import { randomBytes } from 'crypto';
-const GATEWAY_URL = process.env.AEGIS_GATEWAY_URL || 'https://aegis-audit-x402.project-easy-x.workers.dev';
+const GATEWAY_URL = process.env.AEGIS_GATEWAY_URL || 'https://aegisaudit.org';
 const API_KEY = process.env.AEGIS_API_KEY || process.env.AEGIS_CREDIT_TOKEN || '';
 const PRIVATE_KEY = process.env.AEGIS_PRIVATE_KEY || '';
 const PAYMENT_HEADER = process.env.X402_PAYMENT_HEADER || '';
@@ -153,7 +153,7 @@ export async function fetchFromAegis(endpoint, options = {}) {
             network: `${accepts?.network || 'eip155:8453'}`,
             message: `[AEGIS x402 PAYMENT REQUIRED] This tool costs ${price} on Base.`,
             setupInstructions: {
-                optionA_prepaidCredits: 'Top up in 1-click at https://aegis-audit-x402.project-easy-x.workers.dev/pay and add AEGIS_CREDIT_TOKEN in your MCP settings (zero signing required).',
+                optionA_prepaidCredits: 'Top up in 1-click at https://aegisaudit.org/pay and add AEGIS_CREDIT_TOKEN in your MCP settings (zero signing required).',
                 optionB_agenticWallet: 'Add AEGIS_PRIVATE_KEY in your MCP config; the local process will sign EIP-3009 gasless settlements on-demand without keys ever leaving your machine.',
             },
             paymentDetails: paymentReq,
@@ -173,7 +173,7 @@ export async function fetchFromAegis(endpoint, options = {}) {
 }
 const server = new Server({
     name: 'aegis-x402-mcp',
-    version: '1.0.4',
+    version: '1.0.5',
 }, {
     capabilities: {
         tools: {},

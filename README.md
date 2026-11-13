@@ -1,31 +1,48 @@
 # aegis-x402-mcp
 
-> **Model Context Protocol (MCP) server for AegisAudit — Autonomous On-Chain Token Security, PreFlight Bundles, KYA Reputation, and Grounded AI over the x402 Protocol on Base Mainnet.**
+> **Model Context Protocol (MCP) server for [AegisAudit](https://aegisaudit.org) — Autonomous On-Chain Token Security, PreFlight Bundles, Honeypot Simulation, KYA Reputation, and Grounded AI over the x402 v2 Protocol on Base Mainnet.**
 
 [![npm version](https://img.shields.io/npm/v/aegis-x402-mcp.svg)](https://www.npmjs.com/package/aegis-x402-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Network: Base](https://img.shields.io/badge/Network-Base%20(eip155%3A8453)-0052FF)](https://base.org)
 [![x402 Protocol](https://img.shields.io/badge/Protocol-x402%20v2-green)](https://x402.org)
 
-`aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and custom AI agents directly to the live Aegis autonomous node. It enables AI coding assistants and trading bots to verify smart contracts, test honeypot traps, assess DEX liquidity, and check wallet counterparty risk before deploying or trading capital.
+`aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and autonomous trading bots directly to **[https://aegisaudit.org](https://aegisaudit.org)** (local `stdio` CLI or hosted Streamable HTTP at `https://aegisaudit.org/mcp`). Every paid response includes a third-party verifiable ECDSA `secp256k1` EIP-191 `proofOfExecution` receipt (`/.well-known/poe-key.json`), and upstream failures fail closed (`HTTP 502`, zero USDC charged).
+
+- **Canonical Gateway:** `https://aegisaudit.org`
+- **Hosted Streamable HTTP MCP:** `https://aegisaudit.org/mcp`
+- **Contact:** `security@aegisaudit.org`
 
 ---
 
-## Tools Exposed
+## Commercial Security SKUs & MCP Tools (8 Tools)
 
 | Tool Name | Price | Description |
 |---|---|---|
-| `aegis_preflight_bundle` | **$0.20 USDC** | **Killer Endpoint #1:** All-in-one pre-trade clearance: multi-oracle honeypot audit, DEX liquidity depth, counterparty KYA, and AP2 spend mandate limits with a signed Proof-of-Execution. |
-| `aegis_priority_audit` | **$0.05 USDC** | 100% fresh, un-cached multi-oracle token security audit bypassing the 60s cache with prioritized live execution for sniper bots. |
-| `aegis_token_audit` | **$0.01 USDC** | Multi-oracle smart contract bytecode inspection (GoPlus, Honeypot.is, DexScreener, Base RPC). |
-| `aegis_token_preview` | **FREE** | Real-time market pool, token price, pair address, and DEX liquidity without payment. |
-| `aegis_wallet_kya` | **$0.01 USDC** | Know-Your-Agent (KYA) counterparty wallet reputation, transaction nonce history, balances, and sanctions checks. |
+| `aegis_preflight_bundle` | **$0.20 USDC** | **Commercial SKU #1 (Flagship Pre-Swap Guard):** Atomic multi-oracle honeypot audit + DEX liquidity depth + AP2 spend mandate + counterparty KYA + ECDSA PoE receipt. |
+| `aegis_priority_audit` | **$0.05 USDC** | **Commercial SKU #2:** 100% cache-bypassed, fresh live-oracle scan for sniper bots & new Base pool launches. |
+| `aegis_token_audit` | **$0.01 USDC** | **Commercial SKU #3:** Multi-oracle smart contract bytecode inspection (GoPlus, Honeypot.is V2, DexScreener, Base RPC). |
+| `aegis_wallet_kya` | **$0.01 USDC** | Know-Your-Agent (KYA) counterparty wallet reputation, transaction nonce age, balances, and OFAC/GoPlus sanctions checks. |
 | `aegis_web_scrape` | **$0.005 USDC** | Converts any public webpage into clean, token-efficient LLM Markdown and extracted links. |
-| `aegis_recent_audits` | **FREE** | Real-time stream of latest analyzed tokens across Base, Ethereum, and Solana. |
+| `aegis_grounded_chat` | **$0.005 USDC** | OpenAI-compatible grounded LLM inference enriched with live Base/Ethereum on-chain security telemetry. |
+| `aegis_token_preview` | **FREE** | Real-time market pool, token price, pair address, and DEX liquidity without payment. |
+| `aegis_recent_audits` | **FREE** | Real-time stream of latest verified settled token audits across Base, Ethereum, and Solana. |
 
 ---
 
-## Quick Setup
+## Trading Bot & Sniper Guard Examples (`Base Mainnet`)
+
+Drop-in fail-closed pre-swap gates calling `https://aegisaudit.org/api/v1/preflight/bundle` (`$0.20 USDC` over x402 v2) before submitting a swap on Aerodrome or Uniswap:
+
+- TypeScript (`@x402/fetch` + `@x402/evm` + `viem`): [`examples/base-sniper-guard.ts`](examples/base-sniper-guard.ts)
+- Python (zero external dependencies): [`examples/base-sniper-guard.py`](examples/base-sniper-guard.py)
+
+Inspect a live sample clearance response with zero payment:
+```bash
+curl -s https://aegisaudit.org/api/v1/sample/preflight
+```
+
+---
 
 ## 3-Tier Frictionless Execution Architecture
 
@@ -33,7 +50,7 @@
    Tools like `aegis_token_preview` and `aegis_recent_audits` work instantly out-of-the-box with zero configuration or keys.
 
 2. **Tier 2 — Prepaid Credit Token (Recommended for Humans):**
-   Top up in 1-click at [https://aegis-audit-x402.project-easy-x.workers.dev/pay](https://aegis-audit-x402.project-easy-x.workers.dev/pay) to get a signed 24-hour credit token `aegis_credit_...`.
+   Top up in 1-click at [https://aegisaudit.org/pay](https://aegisaudit.org/pay) to get a signed 24-hour credit token `aegis_credit_...`.
    Add `AEGIS_CREDIT_TOKEN` in your config. No local wallet key or per-call signing required.
 
 3. **Tier 3 — Autonomous Agentic Wallet (For Autonomous Trading Bots & Power Users):**
@@ -84,9 +101,9 @@ Create or update `.cursor/mcp.json` in your project root:
 }
 ```
 
-### Option 3: Windsurf / Codeium
+### Option 3: Windsurf / Remote Streamable HTTP
 
-Add to `~/.codeium/windsurf/mcp_config.json`:
+Add to `~/.codeium/windsurf/mcp_config.json` (or connect any Streamable HTTP MCP client to `https://aegisaudit.org/mcp`):
 
 ```json
 {
@@ -105,7 +122,7 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 
 | Variable | Description |
 |---|---|
-| `AEGIS_GATEWAY_URL` | Gateway URL (defaults to `https://aegis-audit-x402.project-easy-x.workers.dev`). |
+| `AEGIS_GATEWAY_URL` | Gateway URL (defaults to `https://aegisaudit.org`). |
 | `AEGIS_CREDIT_TOKEN` | Tier-bound 24h prepaid credit token generated from `/pay` or prior `X-Aegis-Credit-Token` settlement headers. |
 | `AEGIS_PRIVATE_KEY` | Optional local EVM private key (`0x...`) used in-process to sign EIP-3009 USDC authorizations on Base without keys ever leaving your machine. |
 | `AEGIS_API_KEY` | Alias for `AEGIS_CREDIT_TOKEN` / prepaid enterprise API key. |
@@ -113,17 +130,13 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ---
 
-## Publishing & Registry Registration
+## Discovery & Registries
 
-### Official Model Context Protocol Registry
-Published on the official MCP Registry: [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) via `mcp-publisher`.
-
-### Community Registries & Discovery
+- **Canonical Docs & Agent Manifests:** [`aegisaudit.org/AGENTS.md`](https://aegisaudit.org/AGENTS.md) · [`aegisaudit.org/llms-full.txt`](https://aegisaudit.org/llms-full.txt) · [`aegisaudit.org/.well-known/x402.json`](https://aegisaudit.org/.well-known/x402.json)
+- **Official MCP Registry:** [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) (`io.github.Goatincrypto/aegis-x402-mcp`)
 - **NPM:** [https://www.npmjs.com/package/aegis-x402-mcp](https://www.npmjs.com/package/aegis-x402-mcp)
 - **GitHub:** [https://github.com/Goatincrypto/aegis-x402-mcp](https://github.com/Goatincrypto/aegis-x402-mcp)
-- **Glama:** [glama.ai/mcp/servers](https://glama.ai/mcp/servers)
-- **PulseMCP:** [pulsemcp.com](https://pulsemcp.com)
-- **Smithery:** `npx -y @smithery/cli install aegis-x402-mcp`
+- **Security Contact:** `security@aegisaudit.org`
 
 ---
 
