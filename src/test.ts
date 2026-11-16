@@ -159,7 +159,7 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 8 too
   const initRes = responses.find((r) => r.id === 1);
   assert.ok(initRes?.result?.serverInfo, 'initialize must return serverInfo');
   assert.equal(initRes.result.serverInfo.name, 'aegis-x402-mcp');
-  assert.equal(initRes.result.serverInfo.version, '1.0.5');
+  assert.equal(initRes.result.serverInfo.version, '1.0.6');
 
   const listRes = responses.find((r) => r.id === 2);
   const tools = listRes?.result?.tools || [];
@@ -199,4 +199,51 @@ test('fetchFromAegis returns structured UPSTREAM_ERROR on non-OK HTTP responses 
   } finally {
     globalThis.fetch = origFetch;
   }
+});
+
+test('decodePaymentRequiredFromResponse decodes base64 PAYMENT-REQUIRED header even when 402 body is empty', async () => {
+  const { decodePaymentRequiredFromResponse, selectSupportedAccept } = await import('./index.js');
+  const payload = {
+    x402Version: 2,
+    accepts: [
+      { scheme: 'exact', network: 'eip155:8453', amount: '10000', asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', payTo: '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB' },
+    ],
+  };
+  const b64 = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+  const res = new Response('{}', {
+    status: 402,
+    headers: { 'PAYMENT-REQUIRED': b64, 'Content-Type': 'application/json' },
+  });
+  const decoded = decodePaymentRequiredFromResponse(res, {});
+  assert.equal(decoded.x402Version, 2);
+  const selected = selectSupportedAccept(decoded);
+  assert.equal(selected?.network, 'eip155:8453');
+  assert.equal(selected?.amount, '10000');
+});
+
+test('signEip3009Payment handles USDC alias with assetAddress and rejects unsupported asset strings cleanly', async () => {
+  const { signEip3009Payment } = await import('./index.js');
+  const testPk = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+
+  const signedAlias = await signEip3009Payment(testPk, {
+    scheme: 'exact',
+    network: 'eip155:8453',
+    amount: '10000',
+    asset: 'USDC',
+    assetAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    payTo: '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB',
+  });
+  assert.ok(signedAlias.length > 20);
+
+  await assert.rejects(
+    async () =>
+      signEip3009Payment(testPk, {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        amount: '10000',
+        asset: 'NOT_A_TOKEN',
+        payTo: '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB',
+      }),
+    /UNSUPPORTED_PAYMENT_ASSET/
+  );
 });

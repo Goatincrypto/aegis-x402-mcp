@@ -6,12 +6,12 @@
     "url": "https://github.com/Goatincrypto/aegis-x402-mcp",
     "source": "github"
   },
-  "version": "1.0.5",
+  "version": "1.0.6",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "aegis-x402-mcp",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "transport": {
         "type": "stdio"
       },
