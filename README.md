@@ -49,9 +49,9 @@ curl -s https://aegisaudit.org/api/v1/sample/preflight
 1. **Tier 1 — Zero-Config (Free Tier):**
    Tools like `aegis_token_preview` and `aegis_recent_audits` work instantly out-of-the-box with zero configuration or keys.
 
-2. **Tier 2 — Prepaid Credit Token (Recommended for Humans):**
-   Top up in 1-click at [https://aegisaudit.org/pay](https://aegisaudit.org/pay) to get a signed 24-hour credit token `aegis_credit_...`.
-   Add `AEGIS_CREDIT_TOKEN` in your config. No local wallet key or per-call signing required.
+2. **Tier 2 — Prepaid 30-Day API Key Pack (Recommended for Humans — Card, Apple Pay, or Base USDC):**
+   Grab an instant 30-day API key (`Starter $1 = 150 credits` or `Pro $5 = 1,000 credits` via Stripe Card/Apple Pay or Base USDC) at [https://aegisaudit.org/pay?sku=pro-key](https://aegisaudit.org/pay?sku=pro-key).
+   Add `AEGIS_API_KEY` (or `AEGIS_CREDIT_TOKEN`) in your config. No wallet private key or per-call signing required.
 
 3. **Tier 3 — Autonomous Agentic Wallet (For Autonomous Trading Bots & Power Users):**
    Add `AEGIS_PRIVATE_KEY` in your config.
@@ -123,7 +123,7 @@ Add to `~/.codeium/windsurf/mcp_config.json` (or connect any Streamable HTTP MCP
 | Variable | Description |
 |---|---|
 | `AEGIS_GATEWAY_URL` | Gateway URL (defaults to `https://aegisaudit.org`). |
-| `AEGIS_CREDIT_TOKEN` | Tier-bound 24h prepaid credit token generated from `/pay` or prior `X-Aegis-Credit-Token` settlement headers. |
+| `AEGIS_CREDIT_TOKEN` | 30-day Prepaid API Key or 24h Credit Token from `https://aegisaudit.org/pay?sku=pro-key` (Card/Apple Pay or Base USDC). |
 | `AEGIS_PRIVATE_KEY` | Optional local EVM private key (`0x...`) used in-process to sign EIP-3009 USDC authorizations on Base without keys ever leaving your machine. |
 | `AEGIS_API_KEY` | Alias for `AEGIS_CREDIT_TOKEN` / prepaid enterprise API key. |
 | `X402_PAYMENT_HEADER` | Pre-signed base64 EIP-3009 payment header or authorization token. |
