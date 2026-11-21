@@ -1,0 +1,20 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      aegisCreditToken:
+        type: string
+        description: Optional prepaid credit token from https://aegisaudit.org/pay for Tier-2 MCP access
+      aegisPrivateKey:
+        type: string
+        description: Optional EVM private key for gasless EIP-3009 x402 USDC settlement on Base
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', 'aegis-x402-mcp'],
+      env: {
+        ...(config.aegisCreditToken ? { AEGIS_CREDIT_TOKEN: config.aegisCreditToken } : {}),
+        ...(config.aegisPrivateKey ? { AEGIS_PRIVATE_KEY: config.aegisPrivateKey } : {})
+      }
+    })
