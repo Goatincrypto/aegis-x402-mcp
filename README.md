@@ -1,6 +1,6 @@
 # aegis-x402-mcp
 
-> **Model Context Protocol (MCP) server for [AegisAudit](https://aegisaudit.org) — Autonomous On-Chain Token Security, PreFlight Bundles, Honeypot Simulation, KYA Reputation, and Grounded AI over the x402 v2 Protocol on Base Mainnet.**
+> **Model Context Protocol (MCP) server for [AegisAudit](https://aegisaudit.org) — On-Chain Token Security, PreFlight Pre-Swap Bundles, Honeypot Simulation, KYA Wallet Trust & Grounded AI. Works FREE out of the box, with a $1 Credit Card / Apple Pay API Key (no crypto wallet needed), or autonomously over x402 v2 (Base USDC).**
 
 [![npm version](https://img.shields.io/npm/v/aegis-x402-mcp.svg)](https://www.npmjs.com/package/aegis-x402-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -8,9 +8,16 @@
 [![x402 Protocol](https://img.shields.io/badge/Protocol-x402%20v2-green)](https://x402.org)
 [![Goatincrypto/aegis-x402-mcp MCP server](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp)
 
-`aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and autonomous trading bots directly to **[https://aegisaudit.org](https://aegisaudit.org)** (local `stdio` CLI or hosted Streamable HTTP at `https://aegisaudit.org/mcp`). Every paid response includes a third-party verifiable ECDSA `secp256k1` EIP-191 `proofOfExecution` receipt (`/.well-known/poe-key.json`), and upstream failures fail closed (`HTTP 502`, zero USDC charged).
+`aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and autonomous trading bots directly to **[https://aegisaudit.org](https://aegisaudit.org)** (local `stdio` CLI via `npx -y aegis-x402-mcp` or hosted Streamable HTTP at `https://aegisaudit.org/mcp`). Every paid response includes a third-party verifiable ECDSA `secp256k1` EIP-191 `proofOfExecution` receipt (`/.well-known/poe-key.json`), and upstream failures fail closed (`HTTP 502`, zero charge).
+
+### Start in 30 Seconds (No Crypto Wallet Required)
+
+- **Free Tier (`$0`, zero setup):** Run `npx -y aegis-x402-mcp` right now to call `aegis_token_preview` (live DEX pool, price, liquidity) and `aegis_recent_audits` with no keys or wallet.
+- **Pay by Credit Card or Apple Pay (Recommended for Developers):** Grab an instant 30-day API key (**Starter `$1` = 150 credits** or **Pro `$5` = 1,000 credits**) via Stripe at **[https://aegisaudit.org/pay](https://aegisaudit.org/pay)** and set `AEGIS_API_KEY` (or `AEGIS_CREDIT_TOKEN`). No Base wallet or USDC required.
+- **Autonomous x402 v2 Agents (Optional):** Set `AEGIS_PRIVATE_KEY` for gasless per-call EIP-3009 USDC settlement on Base Mainnet.
 
 - **Canonical Gateway:** `https://aegisaudit.org`
+- **Instant Card / Apple Pay Checkout:** `https://aegisaudit.org/pay`
 - **Hosted Streamable HTTP MCP:** `https://aegisaudit.org/mcp`
 - **Contact:** `security@aegisaudit.org`
 
@@ -131,12 +138,15 @@ Add to `~/.codeium/windsurf/mcp_config.json` (or connect any Streamable HTTP MCP
 
 ---
 
-## Discovery & Registries
+## Discovery, Registries & B2B Automation Suite
 
+- **Instant Card / Apple Pay API Keys ($1 Starter / $5 Pro):** [https://aegisaudit.org/pay](https://aegisaudit.org/pay)
 - **Canonical Docs & Agent Manifests:** [`aegisaudit.org/AGENTS.md`](https://aegisaudit.org/AGENTS.md) · [`aegisaudit.org/llms-full.txt`](https://aegisaudit.org/llms-full.txt) · [`aegisaudit.org/.well-known/x402.json`](https://aegisaudit.org/.well-known/x402.json)
 - **Official MCP Registry:** [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) (`io.github.Goatincrypto/aegis-x402-mcp`)
+- **Glama Quality Score (`A / A / B`):** [glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp)
 - **NPM:** [https://www.npmjs.com/package/aegis-x402-mcp](https://www.npmjs.com/package/aegis-x402-mcp)
 - **GitHub:** [https://github.com/Goatincrypto/aegis-x402-mcp](https://github.com/Goatincrypto/aegis-x402-mcp)
+- **AegisAudit Apify B2B Actors & Free n8n/Make/Clay Workflows:** [apify.com/aegisaudit](https://apify.com/aegisaudit) · [aegisaudit.org/guides](https://aegisaudit.org/guides)
 - **Security Contact:** `security@aegisaudit.org`
 
 ---

@@ -1,8 +1,8 @@
 {
   "name": "aegis-x402-mcp",
   "mcpName": "io.github.Goatincrypto/aegis-x402-mcp",
-  "version": "1.0.6",
-  "description": "MCP server for AegisAudit x402 token security, honeypot simulation, KYA, and PreFlight clearance",
+  "version": "1.0.7",
+  "description": "MCP server for AegisAudit token security, honeypot simulation, KYA & PreFlight clearance (Free tier, $1 Stripe Card API Key, or x402 Base USDC)",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -31,6 +31,7 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "x402",
     "claude-desktop",
@@ -38,7 +39,13 @@
     "windsurf",
     "token-security",
     "base",
-    "honeypot"
+    "ethereum",
+    "solana",
+    "honeypot",
+    "defi",
+    "pre-swap",
+    "stripe",
+    "api-key"
   ],
   "author": "Antigravity Autonomous Systems",
   "license": "MIT",
