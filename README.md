@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Network: Base](https://img.shields.io/badge/Network-Base%20(eip155%3A8453)-0052FF)](https://base.org)
 [![x402 Protocol](https://img.shields.io/badge/Protocol-x402%20v2-green)](https://x402.org)
+[![Goatincrypto/aegis-x402-mcp MCP server](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp)
 
 `aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and autonomous trading bots directly to **[https://aegisaudit.org](https://aegisaudit.org)** (local `stdio` CLI or hosted Streamable HTTP at `https://aegisaudit.org/mcp`). Every paid response includes a third-party verifiable ECDSA `secp256k1` EIP-191 `proofOfExecution` receipt (`/.well-known/poe-key.json`), and upstream failures fail closed (`HTTP 502`, zero USDC charged).
 
