@@ -11,9 +11,54 @@ const PRIVATE_KEY = process.env.AEGIS_PRIVATE_KEY || '';
 const PAYMENT_HEADER = process.env.X402_PAYMENT_HEADER || '';
 export const ALLOWED_PAYTO = '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB'.toLowerCase();
 export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
+export const BASE_SEPOLIA_USDC = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'.toLowerCase();
+const REQUEST_TIMEOUT_MS = 15000;
 export function parseChainIdFromNetwork(network) {
-    const match = String(network || '').match(/^eip155:(\d+)$/);
+    const raw = String(network || '').trim().toLowerCase();
+    if (raw === 'base')
+        return 8453;
+    if (raw === 'base-sepolia')
+        return 84532;
+    const match = raw.match(/^eip155:(\d+)$/);
     return match ? Number(match[1]) : 8453;
+}
+export function decodePaymentRequiredFromResponse(res, bodyJson) {
+    const header = res.headers.get('payment-required') || res.headers.get('PAYMENT-REQUIRED');
+    if (header && header.trim().length > 0) {
+        try {
+            const normalized = header.trim().replace(/-/g, '+').replace(/_/g, '/');
+            const padMod = normalized.length % 4;
+            const padded = padMod === 2 ? `${normalized}==` : padMod === 3 ? `${normalized}=` : normalized;
+            const decoded = Buffer.from(padded, 'base64').toString('utf-8');
+            const parsed = JSON.parse(decoded);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+        catch {
+            // fall back to response JSON body
+        }
+    }
+    return bodyJson && typeof bodyJson === 'object' ? bodyJson : {};
+}
+export function selectSupportedAccept(paymentReq) {
+    const list = Array.isArray(paymentReq?.accepts) ? paymentReq.accepts : [];
+    const isEvmUsdcCandidate = (item) => {
+        if (!item || typeof item !== 'object')
+            return false;
+        const scheme = String(item.scheme || '').toLowerCase();
+        if (scheme !== 'exact')
+            return false;
+        const net = String(item.network || '').toLowerCase();
+        const validNet = net === 'eip155:8453' || net === 'eip155:84532' || net === 'base' || net === 'base-sepolia';
+        if (!validNet)
+            return false;
+        const assetCandidate = String(item.assetAddress || item.asset || '').trim();
+        const isZeroX = /^0x[a-fA-F0-9]{40}$/.test(assetCandidate);
+        const isUsdcAlias = String(item.asset || '').toUpperCase() === 'USDC' && (!item.assetAddress || /^0x[a-fA-F0-9]{40}$/.test(String(item.assetAddress)));
+        return isZeroX || isUsdcAlias;
+    };
+    return list.find(isEvmUsdcCandidate) || null;
 }
 /**
  * Signs EIP-3009 TransferWithAuthorization locally inside the user's MCP process.
@@ -25,19 +70,29 @@ export async function signEip3009Payment(privateKeyHex, accepts, resource) {
         ? privateKeyHex.trim()
         : `0x${privateKeyHex.trim()}`;
     const account = privateKeyToAccount(cleanKey);
-    const recipient = (accepts.payTo || accepts.recipient || '').toLowerCase();
+    const recipient = String(accepts?.payTo || accepts?.recipient || '').toLowerCase();
     if (recipient !== ALLOWED_PAYTO) {
         throw new Error(`SECURITY_RECIPIENT_GUARD: Recipient ${recipient} is not official Aegis receiver (${ALLOWED_PAYTO}). Signing refused.`);
     }
     const nonce = `0x${randomBytes(32).toString('hex')}`;
     const validAfterStr = '0';
-    const maxTimeout = typeof accepts.maxTimeoutSeconds === 'number' ? accepts.maxTimeoutSeconds : 300;
+    const maxTimeout = typeof accepts?.maxTimeoutSeconds === 'number' ? accepts.maxTimeoutSeconds : 300;
     const validBeforeStr = String(Math.floor(Date.now() / 1000) + maxTimeout);
-    const valueStr = String(accepts.amount || '10000');
+    const valueStr = String(accepts?.amount || accepts?.maxAmountRequired || '10000');
+    const rawAsset = accepts?.assetAddress || accepts?.asset;
+    const chainId = parseChainIdFromNetwork(accepts?.network);
+    const fallbackAsset = chainId === 84532 ? BASE_SEPOLIA_USDC : BASE_USDC;
+    const resolvedAssetRaw = typeof rawAsset === 'string' && /^0x[a-fA-F0-9]{40}$/.test(rawAsset.trim())
+        ? rawAsset.trim()
+        : !rawAsset || String(rawAsset).toUpperCase() === 'USDC'
+            ? fallbackAsset
+            : '';
+    if (!resolvedAssetRaw) {
+        throw new Error(`UNSUPPORTED_PAYMENT_ASSET: Expected EVM USDC address, got "${String(rawAsset)}".`);
+    }
     const fromChecksum = getAddress(account.address);
     const toChecksum = getAddress(accepts.payTo || accepts.recipient);
-    const assetChecksum = getAddress(accepts.asset || BASE_USDC);
-    const chainId = parseChainIdFromNetwork(accepts.network);
+    const assetChecksum = getAddress(resolvedAssetRaw);
     const domain = {
         name: accepts.extra?.name || 'USD Coin',
         version: accepts.extra?.version || '2',
@@ -108,10 +163,15 @@ export async function fetchFromAegis(endpoint, options = {}) {
         headers['X-PAYMENT'] = PAYMENT_HEADER;
         headers['PAYMENT-SIGNATURE'] = PAYMENT_HEADER;
     }
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(url, {
+        ...options,
+        headers,
+        signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
     if (res.status === 402) {
-        const paymentReq = await res.json().catch(() => ({}));
-        const accepts = paymentReq?.accepts?.[0];
+        const rawBody = await res.json().catch(() => ({}));
+        const paymentReq = decodePaymentRequiredFromResponse(res, rawBody);
+        const accepts = selectSupportedAccept(paymentReq) || paymentReq?.accepts?.[0];
         // Tier 3: If user provided a local private key, sign and retry in-flight
         if (PRIVATE_KEY && accepts) {
             try {
@@ -121,7 +181,11 @@ export async function fetchFromAegis(endpoint, options = {}) {
                     'X-PAYMENT': signedHeader,
                     'PAYMENT-SIGNATURE': signedHeader,
                 };
-                const retryRes = await fetch(url, { ...options, headers: retryHeaders });
+                const retryRes = await fetch(url, {
+                    ...options,
+                    headers: retryHeaders,
+                    signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+                });
                 if (retryRes.ok) {
                     return retryRes.json();
                 }
@@ -173,7 +237,7 @@ export async function fetchFromAegis(endpoint, options = {}) {
 }
 const server = new Server({
     name: 'aegis-x402-mcp',
-    version: '1.0.5',
+    version: '1.0.6',
 }, {
     capabilities: {
         tools: {},
@@ -310,7 +374,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                         },
                         model: {
                             type: 'string',
-                            description: 'Optional model identifier (defaults to aegis-llama-3.3-70b-grounded)',
+                            description: 'Optional model identifier (defaults to aegis-llama-3.1-8b-default)',
+                            default: 'aegis-llama-3.1-8b-default',
                         },
                     },
                     required: ['prompt'],
@@ -331,7 +396,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     try {
         if (name === 'aegis_preflight_bundle') {
-            const tokenAddress = String(args?.tokenAddress || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913');
+            const tokenAddress = String(args?.tokenAddress || args?.address || '').trim();
+            if (!tokenAddress) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'tokenAddress is required', charged: false }) }],
+                    isError: true,
+                };
+            }
             const chain = String(args?.chain || 'base');
             const counterpartyAddress = args?.counterpartyAddress ? String(args.counterpartyAddress) : undefined;
             const tradeAmountUsd = typeof args?.tradeAmountUsd === 'number' ? args.tradeAmountUsd : undefined;
@@ -345,7 +416,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
         if (name === 'aegis_priority_audit') {
-            const address = String(args?.address || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913');
+            const address = String(args?.address || args?.tokenAddress || '').trim();
+            if (!address) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'address is required', charged: false }) }],
+                    isError: true,
+                };
+            }
             const chain = String(args?.chain || 'base');
             const data = await fetchFromAegis(`/api/v1/token/audit/priority?chain=${encodeURIComponent(chain)}&address=${encodeURIComponent(address)}`);
             return {
@@ -353,7 +430,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
         if (name === 'aegis_token_audit') {
-            const address = String(args?.address || '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913');
+            const address = String(args?.address || args?.tokenAddress || '').trim();
+            if (!address) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'address is required', charged: false }) }],
+                    isError: true,
+                };
+            }
             const chain = String(args?.chain || 'base');
             const data = await fetchFromAegis(`/api/v1/token/audit/${encodeURIComponent(chain)}/${encodeURIComponent(address)}`);
             return {
@@ -369,22 +452,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
         if (name === 'aegis_wallet_kya') {
-            const address = String(args?.address || '0x111ef680B6EFdd859FbEc473b907aCe95F0D1acB');
+            const address = String(args?.address || '').trim();
+            if (!address) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'address is required', charged: false }) }],
+                    isError: true,
+                };
+            }
             const data = await fetchFromAegis(`/api/v1/kya/${encodeURIComponent(address)}`);
             return {
                 content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
             };
         }
         if (name === 'aegis_web_scrape') {
-            const targetUrl = String(args?.url || 'https://example.com');
+            const targetUrl = String(args?.url || '').trim();
+            if (!targetUrl) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'url is required', charged: false }) }],
+                    isError: true,
+                };
+            }
             const data = await fetchFromAegis(`/api/v1/scrape?url=${encodeURIComponent(targetUrl)}`);
             return {
                 content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
             };
         }
         if (name === 'aegis_grounded_chat') {
-            const prompt = String(args?.prompt || 'Analyze Base USDC safety.');
-            const model = String(args?.model || 'aegis-llama-3.3-70b-grounded');
+            const prompt = String(args?.prompt || '').trim();
+            if (!prompt) {
+                return {
+                    content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'prompt is required', charged: false }) }],
+                    isError: true,
+                };
+            }
+            const model = String(args?.model || 'aegis-llama-3.1-8b-default');
             const data = await fetchFromAegis('/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

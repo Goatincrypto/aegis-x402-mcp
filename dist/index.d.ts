@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 export declare const ALLOWED_PAYTO: string;
 export declare const BASE_USDC: string;
+export declare const BASE_SEPOLIA_USDC: string;
 export declare function parseChainIdFromNetwork(network?: string): number;
+export declare function decodePaymentRequiredFromResponse(res: Response, bodyJson: any): any;
+export declare function selectSupportedAccept(paymentReq: any): any;
 /**
  * Signs EIP-3009 TransferWithAuthorization locally inside the user's MCP process.
  * Keys never leave the local machine.
