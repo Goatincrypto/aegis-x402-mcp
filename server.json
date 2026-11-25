@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Goatincrypto/aegis-x402-mcp",
-  "description": "On-chain token security, honeypot simulation, KYA wallet trust, and x402 PreFlight audits on Base.",
+  "description": "OWASP MCP03 tool-poisoning & SHA-256 rug-pull auditor plus Base token security, honeypot & x402 PreFlight.",
   "repository": {
     "url": "https://github.com/Goatincrypto/aegis-x402-mcp",
     "source": "github"
