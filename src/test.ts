@@ -94,7 +94,7 @@ test('signEip3009Payment builds valid x402 v2 EIP-3009 authorization recoverable
   assert.equal(isValid, true, 'EIP-712 TransferWithAuthorization signature must verify cleanly');
 });
 
-test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 8 tools', async () => {
+test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 9 tools', async () => {
   const serverPath = join(__dirname, 'index.js');
   const env = { ...process.env };
   delete env.AEGIS_MCP_TEST;
@@ -159,17 +159,18 @@ test('MCP stdio handshake (SDK 1.32.2) initializes cleanly and exposes all 8 too
   const initRes = responses.find((r) => r.id === 1);
   assert.ok(initRes?.result?.serverInfo, 'initialize must return serverInfo');
   assert.equal(initRes.result.serverInfo.name, 'aegis-x402-mcp');
-  assert.equal(initRes.result.serverInfo.version, '1.0.6');
+  assert.equal(initRes.result.serverInfo.version, '1.0.8');
 
   const listRes = responses.find((r) => r.id === 2);
   const tools = listRes?.result?.tools || [];
-  assert.equal(tools.length, 8, 'Must expose all 8 Aegis MCP tools');
+  assert.equal(tools.length, 9, 'Must expose all 9 Aegis MCP tools');
   const names = tools.map((t: any) => t.name);
   assert.ok(names.includes('aegis_preflight_bundle'));
   assert.ok(names.includes('aegis_priority_audit'));
   assert.ok(names.includes('aegis_token_audit'));
   assert.ok(names.includes('aegis_token_preview'));
   assert.ok(names.includes('aegis_wallet_kya'));
+  assert.ok(names.includes('aegis_mcp_audit'));
   assert.ok(names.includes('aegis_web_scrape'));
   assert.ok(names.includes('aegis_grounded_chat'));
   assert.ok(names.includes('aegis_recent_audits'));

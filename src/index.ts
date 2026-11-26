@@ -259,7 +259,7 @@ export async function fetchFromAegis(endpoint: string, options: RequestInit = {}
 const server = new Server(
   {
     name: 'aegis-x402-mcp',
-    version: '1.0.6',
+    version: '1.0.8',
   },
   {
     capabilities: {
@@ -376,6 +376,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
           },
           required: ['address'],
+        },
+      },
+      {
+        name: 'aegis_mcp_audit',
+        description:
+          'USE WHEN: Auditing a remote MCP server URL or inline tool manifest for OWASP MCP03 tool poisoning, credential theft, stealth Unicode, and SHA-256 rug-pull drift before connecting an AI agent ($0.01 USDC on Base).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            serverUrl: {
+              type: 'string',
+              description: 'Public https:// Streamable HTTP MCP server or mcp.json manifest URL',
+            },
+            tools: {
+              type: 'array',
+              description: 'Optional inline MCP tools array to audit instead of a remote serverUrl',
+              items: { type: 'object' },
+            },
+            baselineManifestHash: {
+              type: 'string',
+              description: 'Optional pinned SHA-256 baseline hash to detect silent runtime rug-pull drift',
+            },
+          },
         },
       },
       {
@@ -501,6 +524,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
       const data = await fetchFromAegis(`/api/v1/kya/${encodeURIComponent(address)}`);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+      };
+    }
+
+    if (name === 'aegis_mcp_audit') {
+      const serverUrl = args?.serverUrl ? String(args.serverUrl).trim() : '';
+      const inlineTools = Array.isArray(args?.tools) ? args.tools : undefined;
+      if (!serverUrl && !inlineTools) {
+        return {
+          content: [{ type: 'text', text: JSON.stringify({ error: 'INVALID_ARGUMENT', message: 'serverUrl or tools array is required', charged: false }) }],
+          isError: true,
+        };
+      }
+      const data = await fetchFromAegis('/api/v1/mcp/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serverUrl: serverUrl || undefined,
+          tools: inlineTools,
+          baselineManifestHash: args?.baselineManifestHash ? String(args.baselineManifestHash) : undefined,
+        }),
+      });
       return {
         content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
       };
