@@ -7,6 +7,7 @@
 [![Network: Base](https://img.shields.io/badge/Network-Base%20(eip155%3A8453)-0052FF)](https://base.org)
 [![x402 Protocol](https://img.shields.io/badge/Protocol-x402%20v2-green)](https://x402.org)
 [![Goatincrypto/aegis-x402-mcp MCP server](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp/badges/score.svg)](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp)
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/goatincrypto/aegis-x402-mcp)
 
 `aegis-x402-mcp` connects Claude Desktop, Cursor, Windsurf, and autonomous trading bots directly to **[https://aegisaudit.org](https://aegisaudit.org)** (local `stdio` CLI via `npx -y aegis-x402-mcp` or hosted Streamable HTTP at `https://aegisaudit.org/mcp`). Every paid response includes a third-party verifiable ECDSA `secp256k1` EIP-191 `proofOfExecution` receipt (`/.well-known/poe-key.json`), and upstream failures fail closed (`HTTP 502`, zero charge).
 
@@ -23,13 +24,14 @@
 
 ---
 
-## Commercial Security SKUs & MCP Tools (8 Tools)
+## Commercial Security SKUs & MCP Tools (9 Tools)
 
 | Tool Name | Price | Description |
 |---|---|---|
 | `aegis_preflight_bundle` | **$0.20 USDC** | **Commercial SKU #1 (Flagship Pre-Swap Guard):** Atomic multi-oracle honeypot audit + DEX liquidity depth + AP2 spend mandate + counterparty KYA + ECDSA PoE receipt. |
 | `aegis_priority_audit` | **$0.05 USDC** | **Commercial SKU #2:** 100% cache-bypassed, fresh live-oracle scan for sniper bots & new Base pool launches. |
 | `aegis_token_audit` | **$0.01 USDC** | **Commercial SKU #3:** Multi-oracle smart contract bytecode inspection (GoPlus, Honeypot.is V2, DexScreener, Base RPC). |
+| `aegis_mcp_audit` | **$0.01 USDC** | OWASP MCP03 tool-poisoning, credential exfiltration, stealth Unicode, and SHA-256 TOFU rug-pull drift audit for remote MCP servers or inline manifests. |
 | `aegis_wallet_kya` | **$0.01 USDC** | Know-Your-Agent (KYA) counterparty wallet reputation, transaction nonce age, balances, and OFAC/GoPlus sanctions checks. |
 | `aegis_web_scrape` | **$0.005 USDC** | Converts any public webpage into clean, token-efficient LLM Markdown and extracted links. |
 | `aegis_grounded_chat` | **$0.005 USDC** | OpenAI-compatible grounded LLM inference enriched with live Base/Ethereum on-chain security telemetry. |
@@ -84,7 +86,7 @@ Add this configuration to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["-y", "aegis-x402-mcp"],
       "env": {
-        "AEGIS_CREDIT_TOKEN": "aegis_credit_your_token_or_leave_empty_for_free_tier"
+        "AEGIS_CREDIT_TOKEN": "<your-prepaid-token-or-leave-empty>"
       }
     }
   }
@@ -102,7 +104,7 @@ Create or update `.cursor/mcp.json` in your project root:
       "command": "npx",
       "args": ["-y", "aegis-x402-mcp"],
       "env": {
-        "AEGIS_CREDIT_TOKEN": "aegis_credit_your_token"
+        "AEGIS_CREDIT_TOKEN": "<your-prepaid-token>"
       }
     }
   }
@@ -142,6 +144,7 @@ Add to `~/.codeium/windsurf/mcp_config.json` (or connect any Streamable HTTP MCP
 
 - **Instant Card / Apple Pay API Keys ($1 Starter / $5 Pro):** [https://aegisaudit.org/pay](https://aegisaudit.org/pay)
 - **Canonical Docs & Agent Manifests:** [`aegisaudit.org/AGENTS.md`](https://aegisaudit.org/AGENTS.md) · [`aegisaudit.org/llms-full.txt`](https://aegisaudit.org/llms-full.txt) · [`aegisaudit.org/.well-known/x402.json`](https://aegisaudit.org/.well-known/x402.json)
+- **mcpservers.org Listing:** [mcpservers.org/servers/goatincrypto/aegis-x402-mcp](https://mcpservers.org/servers/goatincrypto/aegis-x402-mcp)
 - **Official MCP Registry:** [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) (`io.github.Goatincrypto/aegis-x402-mcp`)
 - **Glama Quality Score (`A / A / B`):** [glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp](https://glama.ai/mcp/servers/Goatincrypto/aegis-x402-mcp)
 - **NPM:** [https://www.npmjs.com/package/aegis-x402-mcp](https://www.npmjs.com/package/aegis-x402-mcp)
